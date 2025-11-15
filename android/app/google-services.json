@@ -1,0 +1,54 @@
+{
+  "project_info": {
+    "project_number": "172159182979",
+    "project_id": "shopify-pricesync-v2",
+    "storage_bucket": "shopify-pricesync-v2.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:172159182979:android:d1ad93fd5af78d7aca93b6",
+        "android_client_info": {
+          "package_name": "com.example.shopify_pricesync_v2"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "172159182979-27c8bql480te8eu6ggerm6augkqr8eee.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.shopify_pricesync_v2",
+            "certificate_hash": "4555986e598109b581d813456ce0bb9f4ce5f973"
+          }
+        },
+        {
+          "client_id": "172159182979-lm5esk96h549clullhci9v7umsp6m4rq.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA1eGzG0yIuDuGIBW0GK6CxKprUaWAI15M"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "172159182979-lm5esk96h549clullhci9v7umsp6m4rq.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "172159182979-38qldea868c1h77udoif2e21fm3fqpn3.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.shopifyPricesyncV2"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
