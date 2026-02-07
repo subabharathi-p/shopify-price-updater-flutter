@@ -1,4 +1,4 @@
-// ✅ HomeScreen.dart — Final Fixed Version (Part 1 / 2)
+
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:shopify_pricesync_v2/product.dart';
@@ -77,7 +77,7 @@ void initState() {
 
   initHive();
 
-  // ✅ Wait properly before calling autoConnect
+  
   WidgetsBinding.instance.addPostFrameCallback((_) async {
     await Future.delayed(const Duration(seconds: 2));
     debugPrint("🚀 Checking for saved Shopify credentials...");
@@ -318,8 +318,6 @@ void updateCurrencySymbol(String symbol) {
     debugPrint("✅ Filtered products count: ${filteredProducts.length}");
   }
 
-  // 🧮 Rest of your core logic continues below (Part 2)
-  // 🧮 --- PRICE UPDATE & UNDO / RESTORE LOGIC ---
 
   double calculateNewPrice(double oldPrice) {
     double newPrice = oldPrice;

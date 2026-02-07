@@ -1,4 +1,3 @@
-// ✅ lib/screen/settings_screen.dart — Final Fixed Version
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../home_screen.dart';
@@ -21,7 +20,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
   static const double kRadius = 12;
 
   final _formKey = GlobalKey<FormState>();
-  final TextEditingController _nameController = TextEditingController();
   final TextEditingController _domainController = TextEditingController();
   final TextEditingController _tokenController = TextEditingController();
 
@@ -37,22 +35,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
     loadStore();
   }
 
-  // 🔹 Load saved store details
+ 
   Future<void> loadStore() async {
     try {
       final stores = await StoreService.getStores();
       if (stores.isNotEmpty) {
         final store = stores[0];
-        _nameController.text = store.storeName;
         _domainController.text = store.shopDomain;
         _tokenController.text = store.accessToken;
         selectedCurrency = store.currency;
-
-        // ⏳ small delay to ensure UI is ready before auto-fetch
-        await Future.delayed(const Duration(milliseconds: 400));
-        await autoFetchStore(store);
       } else {
-        _nameController.clear();
         _domainController.clear();
         _tokenController.clear();
         selectedCurrency = '₹';
@@ -63,48 +55,27 @@ class _SettingsScreenState extends State<SettingsScreen> {
     }
   }
 
-  // 🔹 Auto connect HomeScreen after loading
-  Future<void> autoFetchStore(Store store) async {
-    try {
-      if (!mounted) return;
-      if (store.shopDomain.isEmpty || store.accessToken.isEmpty) return;
-
-      if (HomeScreen.globalKey.currentState != null) {
-        await HomeScreen.globalKey.currentState!
-            .connectAndFetch(store.shopDomain, store.accessToken);
-        HomeScreen.globalKey.currentState!
-            .updateCurrencySymbol(store.currency);
-
-        if (mounted) {
-          showSnack("✅ Store auto-connected successfully", Colors.green);
-        }
-      } else {
-        debugPrint("⚠️ HomeScreen state not ready yet");
-      }
-    } catch (e) {
-      debugPrint("⚠️ Auto fetch failed: $e");
-    }
-  }
-
-  // 🔹 Save or update store credentials (Fixed Navigation)
   Future<void> saveStore() async {
     if (!_formKey.currentState!.validate()) return;
 
+    final domain = _domainController.text.trim();
+    final token = _tokenController.text.trim();
+
     final domainPattern = RegExp(r'^[a-zA-Z0-9\-]+\.myshopify\.com$');
-    if (!domainPattern.hasMatch(_domainController.text.trim())) {
+    if (!domainPattern.hasMatch(domain)) {
       showSnack("❌ Invalid Shopify domain format", Colors.red);
       return;
     }
 
-    if (_tokenController.text.trim().length < 10) {
+    if (token.length < 10) {
       showSnack("❌ Access token too short", Colors.red);
       return;
     }
 
     final newStore = Store(
-      storeName: _nameController.text.trim(),
-      shopDomain: _domainController.text.trim(),
-      accessToken: _tokenController.text.trim(),
+      storeName: domain, 
+      shopDomain: domain,
+      accessToken: token,
       currency: selectedCurrency,
     );
 
@@ -118,28 +89,23 @@ class _SettingsScreenState extends State<SettingsScreen> {
         await StoreService.addStore(newStore);
       }
 
-      // Save credentials locally
       final prefs = await SharedPreferences.getInstance();
-      await prefs.setString('shopDomain', newStore.shopDomain);
-      await prefs.setString('accessToken', newStore.accessToken);
-      await prefs.setString('currency', newStore.currency);
+      await prefs.setString('shopDomain', domain);
+      await prefs.setString('accessToken', token);
+      await prefs.setString('currency', selectedCurrency);
       await prefs.setBool('isShopifyVerified', true);
 
       showSnack("✅ Store saved successfully!", Colors.green.shade700);
 
       if (!mounted) return;
 
-      // ⏳ wait for prefs to save fully
-      await Future.delayed(const Duration(milliseconds: 400));
-
-      // ✅ Relaunch HomeScreen to auto-fetch products
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(
           builder: (_) => HomeScreen(
             key: HomeScreen.globalKey,
-            shopDomain: newStore.shopDomain,
-            accessToken: newStore.accessToken,
+            shopDomain: domain,
+            accessToken: token,
           ),
         ),
       );
@@ -150,10 +116,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
     }
   }
 
-  // 🔹 Delete store and clear preferences
+  // 🔹 Delete store
   Future<void> deleteStore() async {
-    if (_domainController.text.isEmpty && _tokenController.text.isEmpty) return;
-
     final confirm = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
@@ -180,10 +144,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
       final prefs = await SharedPreferences.getInstance();
       await prefs.clear();
 
-      _nameController.clear();
       _domainController.clear();
       _tokenController.clear();
       selectedCurrency = '₹';
+
       setState(() {});
       showSnack("✅ Store deleted", Colors.red.shade700);
 
@@ -204,7 +168,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     }
   }
 
-  // 🔹 Reusable snack bar
+  // 🔹 Snack bar
   void showSnack(String message, Color bg) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -218,7 +182,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
-  // 🔹 Input field style
+  // 🔹 Input decoration
   InputDecoration getInputDecoration(String label) {
     return InputDecoration(
       labelText: label,
@@ -237,7 +201,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
         borderRadius: BorderRadius.circular(kRadius),
         borderSide: const BorderSide(color: kPrimary, width: 2),
       ),
-      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+      contentPadding:
+          const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
     );
   }
 
@@ -266,8 +231,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
               fontWeight: FontWeight.bold, fontSize: 19, color: Colors.white),
         ),
         backgroundColor: kPrimary,
-        elevation: 0,
         centerTitle: true,
+        elevation: 0,
       ),
       body: SafeArea(
         child: SingleChildScrollView(
@@ -276,10 +241,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
             key: _formKey,
             child: Column(
               children: [
-                buildTextField(controller: _nameController, label: "Store Name"),
-                const SizedBox(height: 12),
                 buildTextField(
-                    controller: _domainController, label: "Shopify Domain"),
+                    controller: _domainController,
+                    label: "Shopify Domain"),
                 const SizedBox(height: 12),
                 buildTextField(
                   controller: _tokenController,
@@ -287,7 +251,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   obscure: obscureToken,
                   suffix: IconButton(
                     icon: Icon(
-                      obscureToken ? Icons.visibility : Icons.visibility_off,
+                      obscureToken
+                          ? Icons.visibility
+                          : Icons.visibility_off,
                     ),
                     onPressed: () =>
                         setState(() => obscureToken = !obscureToken),
@@ -297,9 +263,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 Row(
                   children: [
                     const Text(
-                      "Currency: ",
-                      style:
-                          TextStyle(fontWeight: FontWeight.bold, color: kText),
+                      "Currency:",
+                      style: TextStyle(
+                          fontWeight: FontWeight.bold, color: kText),
                     ),
                     const SizedBox(width: 10),
                     DropdownButton<String>(
@@ -320,17 +286,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       child: ElevatedButton(
                         onPressed: isLoading ? null : saveStore,
                         style: ElevatedButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          padding:
+                              const EdgeInsets.symmetric(vertical: 16),
                           backgroundColor: kPrimary,
                           shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(kRadius),
+                            borderRadius:
+                                BorderRadius.circular(kRadius),
                           ),
-                          elevation: 3,
                         ),
                         child: isLoading
                             ? const CircularProgressIndicator(
-                                color: Colors.white,
-                              )
+                                color: Colors.white)
                             : const Text(
                                 "Save / Update",
                                 style: TextStyle(
@@ -344,17 +310,19 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       child: ElevatedButton(
                         onPressed: deleteStore,
                         style: ElevatedButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          padding:
+                              const EdgeInsets.symmetric(vertical: 16),
                           backgroundColor: Colors.red,
                           shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(kRadius),
+                            borderRadius:
+                                BorderRadius.circular(kRadius),
                           ),
-                          elevation: 3,
                         ),
                         child: const Text(
                           "Delete",
                           style: TextStyle(
-                              fontWeight: FontWeight.bold, color: Colors.white),
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white),
                         ),
                       ),
                     ),

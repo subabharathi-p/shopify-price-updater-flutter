@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'signup_screen.dart';
 import 'forgot_password_screen.dart';
@@ -20,7 +19,7 @@ class _LoginScreenState extends State<LoginScreen> {
   bool _loading = false;
   bool _obscurePassword = true;
 
-  // ✅ Soft Peach Theme
+  // 🎨 Soft Peach Theme
   static const Color kBg = Color(0xFFFDF6F2);
   static const Color kPrimary = Color(0xFFD7A4A4);
   static const Color kText = Color(0xFF333333);
@@ -30,65 +29,35 @@ class _LoginScreenState extends State<LoginScreen> {
   void initState() {
     super.initState();
     AutoLogoutService().startTimer(context);
-    _checkLoggedIn();
-  }
-
-  void _checkLoggedIn() async {
-    final user = FirebaseAuth.instance.currentUser;
-    if (user != null && mounted) {
-      final prefs = await SharedPreferences.getInstance();
-      final savedDomain = prefs.getString('shopDomain') ?? '';
-      Future.microtask(() {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (_) => HomeScreen(shopDomain: savedDomain, accessToken: '',)),
-        );
-      });
-    }
   }
 
   String? passwordValidator(String? value) {
     if (value == null || value.isEmpty) return "Please enter your password";
-    final regex = RegExp(r'^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).+$');
-    if (!regex.hasMatch(value)) {
-      return "Password must include:\n• 1 lowercase\n• 1 uppercase\n• 1 number\n• 1 special char";
-    }
-    return null;
+    return null; 
   }
+
 
   Future<void> _login() async {
     if (!_formKey.currentState!.validate()) return;
+
     setState(() => _loading = true);
 
-    try {
-      final cred = await FirebaseAuth.instance.signInWithEmailAndPassword(
-        email: _emailController.text.trim(),
-        password: _passwordController.text.trim(),
-      );
+    final prefs = await SharedPreferences.getInstance();
+    final savedDomain = prefs.getString('shopDomain') ?? '';
 
-      if (cred.user != null && mounted) {
-        final prefs = await SharedPreferences.getInstance();
-        final savedDomain = prefs.getString('shopDomain') ?? '';
+    if (!mounted) return;
 
-        Future.microtask(() {
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(
-              builder: (_) => HomeScreen(shopDomain: savedDomain, accessToken: '',),
-            ),
-          );
-        });
-      }
-    } on FirebaseAuthException catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(e.message ?? "Login failed"),
-          backgroundColor: Colors.redAccent,
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(
+        builder: (_) => HomeScreen(
+          shopDomain: savedDomain,
+          accessToken: '',
         ),
-      );
-    } finally {
-      if (mounted) setState(() => _loading = false);
-    }
+      ),
+    );
+
+    setState(() => _loading = false);
   }
 
   InputDecoration getInputDecoration({
@@ -150,8 +119,10 @@ class _LoginScreenState extends State<LoginScreen> {
                       children: [
                         SizedBox(
                           height: 100,
-                          child: Image.asset('assets/ijc_logo.png',
-                              fit: BoxFit.contain),
+                          child: Image.asset(
+                            'assets/ijc_logo.png',
+                            fit: BoxFit.contain,
+                          ),
                         ),
                         const SizedBox(height: 16),
                         Text(
@@ -168,8 +139,10 @@ class _LoginScreenState extends State<LoginScreen> {
                           keyboardType: TextInputType.emailAddress,
                           decoration: getInputDecoration(
                             label: "Email",
-                            prefixIcon: const Icon(Icons.email_outlined,
-                                color: kPrimary),
+                            prefixIcon: const Icon(
+                              Icons.email_outlined,
+                              color: kPrimary,
+                            ),
                           ),
                           validator: (value) =>
                               value!.isEmpty ? "Please enter your email" : null,
@@ -180,8 +153,10 @@ class _LoginScreenState extends State<LoginScreen> {
                           obscureText: _obscurePassword,
                           decoration: getInputDecoration(
                             label: "Password",
-                            prefixIcon:
-                                const Icon(Icons.lock_outline, color: kPrimary),
+                            prefixIcon: const Icon(
+                              Icons.lock_outline,
+                              color: kPrimary,
+                            ),
                             suffixIcon: IconButton(
                               icon: Icon(
                                 _obscurePassword
@@ -206,7 +181,8 @@ class _LoginScreenState extends State<LoginScreen> {
                               Navigator.push(
                                 context,
                                 MaterialPageRoute(
-                                  builder: (_) => const ForgotPasswordScreen(),
+                                  builder: (_) =>
+                                      const ForgotPasswordScreen(),
                                 ),
                               );
                             },
@@ -246,11 +222,12 @@ class _LoginScreenState extends State<LoginScreen> {
                         Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Text("Don't have an account?",
-                                style: TextStyle(color: kText)),
+                            Text(
+                              "Don't have an account?",
+                              style: TextStyle(color: kText),
+                            ),
                             TextButton(
                               onPressed: () {
-                                if (!mounted) return;
                                 Navigator.push(
                                   context,
                                   MaterialPageRoute(
@@ -280,3 +257,4 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 }
+
